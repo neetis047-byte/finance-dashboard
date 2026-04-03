@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurum — Finance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-mark">◈</span>
+    <span class="logo-text">AURUM</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard">
+      <span class="nav-icon">▦</span>
+      <span>Overview</span>
+    </a>
+    <a href="#" class="nav-item" data-section="transactions">
+      <span class="nav-icon">⇌</span>
+      <span>Transactions</span>
+    </a>
+    <a href="#" class="nav-item" data-section="insights">
+      <span class="nav-icon">◎</span>
+      <span>Insights</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="role-switcher">
+      <label class="role-label">ROLE</label>
+      <select id="roleSelect" class="role-select">
+        <option value="viewer">Viewer</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="role-badge" id="roleBadge">
+      <span class="badge-dot"></span>
+      <span id="roleText">Viewer</span>
+    </div>
+  </div>
+</aside>
+
+
+<header class="mobile-header">
+  <button class="hamburger" id="hamburger">☰</button>
+  <span class="mobile-logo">◈ AURUM</span>
+  <div class="mobile-role" id="mobileRole">Viewer</div>
+</header>
+
+
+<main class="main-content">
+
+  
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title" id="pageTitle">Financial Overview</h1>
+      <p class="page-subtitle" id="pageSubtitle">Your wealth at a glance — <span id="currentDate"></span></p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-theme" id="themeToggle" title="Toggle theme">◑</button>
+      <button class="btn-export admin-only hidden" id="exportBtn">↓ Export</button>
+    </div>
+  </div>
+
+  
+  <section class="section active" id="section-dashboard">
+
+    <div class="cards-grid">
+      <div class="card card--balance animate-in" style="--delay:0.05s">
+        <div class="card-label">TOTAL BALANCE</div>
+        <div class="card-value" id="cardBalance">—</div>
+        <div class="card-delta positive" id="cardBalanceDelta">+0.0%</div>
+        <div class="card-sparkline"><canvas id="sparkBalance"></canvas></div>
+      </div>
+      <div class="card card--income animate-in" style="--delay:0.1s">
+        <div class="card-label">MONTHLY INCOME</div>
+        <div class="card-value" id="cardIncome">—</div>
+        <div class="card-delta positive" id="cardIncomeDelta">+0.0%</div>
+        <div class="card-sub" id="cardIncomeCount">— transactions</div>
+      </div>
+      <div class="card card--expense animate-in" style="--delay:0.15s">
+        <div class="card-label">MONTHLY EXPENSES</div>
+        <div class="card-value" id="cardExpense">—</div>
+        <div class="card-delta negative" id="cardExpenseDelta">+0.0%</div>
+        <div class="card-sub" id="cardExpenseCount">— transactions</div>
+      </div>
+      <div class="card card--savings animate-in" style="--delay:0.2s">
+        <div class="card-label">SAVINGS RATE</div>
+        <div class="card-value" id="cardSavings">—</div>
+        <div class="card-sub">of monthly income</div>
+        <div class="savings-bar"><div class="savings-fill" id="savingsFill"></div></div>
+      </div>
+    </div>
+
+    
+    <div class="charts-row">
+      <div class="chart-card wide animate-in" style="--delay:0.25s">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Balance Trend</div>
+            <div class="chart-sub">6-month rolling overview</div>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-dot income-dot"></span> Income
+            <span class="legend-dot expense-dot"></span> Expenses
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card narrow animate-in" style="--delay:0.3s">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Spending Breakdown</div>
+            <div class="chart-sub">By category</div>
+          </div>
+        </div>
+        <div class="chart-wrap donut-wrap">
+          <canvas id="donutChart"></canvas>
+        </div>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    
+    <div class="recent-section animate-in" style="--delay:0.35s">
+      <div class="section-header">
+        <span class="section-title">Recent Transactions</span>
+        <a href="#" class="view-all" data-section="transactions">View all →</a>
+      </div>
+      <div class="mini-txn-list" id="recentTxnList"></div>
+    </div>
+
+  </section>
+
+  
+  <section class="section" id="section-transactions">
+    <div class="txn-toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search transactions…" />
+      </div>
+      <div class="filter-group">
+        <select id="filterType" class="filter-select">
+          <option value="all">All Types</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+        <select id="filterCategory" class="filter-select">
+          <option value="all">All Categories</option>
+        </select>
+        <select id="sortBy" class="filter-select">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="amount-desc">Highest Amount</option>
+          <option value="amount-asc">Lowest Amount</option>
+        </select>
+      </div>
+      <button class="btn-add admin-only hidden" id="addTxnBtn">+ Add</button>
+    </div>
+
+    <div class="txn-table-wrap">
+      <table class="txn-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th class="right">Amount</th>
+            <th class="admin-only hidden">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="txnTableBody"></tbody>
+      </table>
+      <div class="empty-state hidden" id="txnEmpty">
+        <div class="empty-icon">◎</div>
+        <div class="empty-text">No transactions match your filters</div>
+      </div>
+    </div>
+    <div class="txn-footer" id="txnFooter"></div>
+  </section>
+
+  
+  <section class="section" id="section-insights">
+    <div class="insights-grid">
+      <div class="insight-card highlight animate-in" style="--delay:0.05s" id="insightTop"></div>
+      <div class="insight-card animate-in" style="--delay:0.1s" id="insightSavings"></div>
+      <div class="insight-card animate-in" style="--delay:0.15s" id="insightFrequent"></div>
+      <div class="insight-card animate-in" style="--delay:0.2s" id="insightAvg"></div>
+    </div>
+
+    <div class="month-compare animate-in" style="--delay:0.25s">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Monthly Comparison</div>
+          <div class="chart-sub">Income vs Expenses over time</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="compareChart"></canvas>
+      </div>
+    </div>
+
+    <div class="category-breakdown animate-in" style="--delay:0.3s">
+      <div class="chart-header">
+        <div class="chart-title">Category Deep Dive</div>
+        <div class="chart-sub">Spending by category per month</div>
+      </div>
+      <div id="categoryBars"></div>
+    </div>
+  </section>
+
+</main>
+
+
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Transaction</span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="fDesc" class="form-input" placeholder="e.g. Netflix subscription" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="fAmount" class="form-input" placeholder="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="fType" class="form-input">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="fCategory" class="form-input">
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Health">Health</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Salary">Salary</option>
+            <option value="Freelance">Freelance</option>
+            <option value="Investment">Investment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="fDate" class="form-input" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-submit" id="modalSubmit">Save Transaction</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
